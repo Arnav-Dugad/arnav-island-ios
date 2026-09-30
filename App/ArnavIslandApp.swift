@@ -37,8 +37,8 @@ struct AppRoot: View {
         .onOpenURL { open($0) }
         .onChange(of: phase) { _, p in phaseChanged(p) }
         .task {
+            if Demo.on { Demo.load(hub); if let r = Demo.argument("open") { try? await Task.sleep(for: .milliseconds(600)); hub.request = r }; return }
             Notify.setUp(); Sources.clearOld()
-            UNUserNotificationCenter.current().delegate = delegate
             NetWatch.shared.onChange = { Hub.shared.networkChanged() }
             await hub.start()
             KeepAlive.shared.sync(); RecentPhotos.shared.sync(); LiveActivities.shared.sync()

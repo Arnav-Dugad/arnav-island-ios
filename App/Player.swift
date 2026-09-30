@@ -11,12 +11,15 @@ import UIKit
 final class Player {
     static let shared = Player()
     var music: Handoff?
-    var peer: String?, pcName: String?
+    var peer: String?
+    var pcName: String?
     var playing = false
-    var position = 0.0, duration = 0.0
+    var position = 0.0
+    var duration = 0.0
     var artwork: UIImage?
     @ObservationIgnored private var player: AVPlayer?
-    @ObservationIgnored private var observer: Any?, ended: NSObjectProtocol?
+    @ObservationIgnored private var observer: Any?
+    @ObservationIgnored private var ended: NSObjectProtocol?
     @ObservationIgnored private var commandsReady = false
     private init() {}
 

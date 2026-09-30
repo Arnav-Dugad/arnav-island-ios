@@ -34,9 +34,9 @@ public enum IslandWire {
                          minutesLeft: left, minutesToFull: toFull, designMwh: caps[0], fullMwh: caps[1], remainingMwh: caps[2], rateMw: caps[3], voltageMv: caps[4],
                          cycles: cycles, temperatureDeciK: temp, health: health, healthBefore: before, chemistry: texts[0], manufacturer: texts[1], name: texts[2], day: day)
     }
-    public static func focus(_ p: [UInt8], at: Date = Date()) -> FocusState? {
+    public static func focus(_ p: [UInt8], at: Date = Date()) -> FocusClock? {
         let r = Reader(p); guard let mode = r.u8(), let running = r.u8(), let finished = r.u8(), let shown = r.f64(), let duration = r.f64(), let pc = r.string(512) else { return nil }
-        return FocusState(mode: mode, running: running != 0, finished: finished != 0, shown: shown, duration: duration, pcName: pc, at: at)
+        return FocusClock(mode: mode, running: running != 0, finished: finished != 0, shown: shown, duration: duration, pcName: pc, at: at)
     }
     public static func settings(_ p: [UInt8]) -> IslandSettings? {
         let r = Reader(p); guard r.u8() == 1, let sections = list(r.u8(), { r.string(1024) }) else { return nil }

@@ -114,12 +114,13 @@ final class Hub {
     var outputs: [AudioOutput] = []
     var pcBattery: PcBattery?
     var statsTrail: [StatsPoint] = []
-    var focus: FocusState?
+    var focus: FocusClock?
     @ObservationIgnored private var trailPc: String?
     @ObservationIgnored private var batteryTick = 0
     @ObservationIgnored private var statsCache: [String: PcStats] = [:]
 
     private init() {
+        if Demo.on { prefs = Prefs(); prefs.theme = Demo.argument("theme").flatMap(Int.init) ?? 0 }
         selected = AppGroup.defaults.string(forKey: "pc")
         moments = loadMoments()
         focus = loadFocus()
@@ -145,6 +146,7 @@ final class Hub {
     // ---- the link ----
     @discardableResult func start() async -> IslandKit.Link? {
         if let link { return link }
+        if Demo.on { return nil }
         if starting { for _ in 0..<80 { try? await Task.sleep(for: .milliseconds(100)); if let link { return link } }; return link }
         starting = true; defer { starting = false }
         let options = IslandKit.Link.Options(phone: true, direct: true)
@@ -267,7 +269,8 @@ final class Hub {
     }
 
     // ---- music from a PC ----
-    @ObservationIgnored private var musicOfferedAt = Date(), musicAnsweredAt = Date()
+    @ObservationIgnored private var musicOfferedAt = Date()
+    @ObservationIgnored private var musicAnsweredAt = Date()
     /// Continues a PC's music here: from the song's own file when the PC has one (it arrives, then plays from where the PC
     /// was), else in Apple Music or Spotify by searching for it.
     func answerMusic(_ offer: MusicOffer, play: Bool) {
@@ -345,7 +348,7 @@ final class Hub {
     }
     /// Takes an item from a PC's Shelf onto this iPhone.
     func take(_ peer: String, index: Int, item: ShelfItem) { let l = link; DispatchQueue.global().async { _ = l?.take(peer, index: index, name: item.name) } }
-    func shelf(_ peer: String) async -> ShelfList { guard let l = link else { return ShelfList(shared: false, items: [], error: "Not connected yet") }; return await io { l.shelf(peer) } }
+    func shelf(_ peer: String) async -> ShelfList { if Demo.on { return Sample.shelf(preview: Demo.shelfPreview) }; guard let l = link else { return ShelfList(shared: false, items: [], error: "Not connected yet") }; return await io { l.shelf(peer) } }
 
     private func remember(_ m: Moment) { moments.insert(m, at: 0); if moments.count > 40 { moments.removeLast(moments.count - 40) }; saveMoments() }
     private func saveMoments() { if let d = try? JSONEncoder().encode(moments) { AppGroup.defaults.set(d, forKey: "moments") } }
@@ -435,7 +438,9 @@ final class Hub {
     @ObservationIgnored fileprivate var lastFromPC: String?
 
     // ---- lyrics, find my PC ----
-    @ObservationIgnored private var lyricsKey: String?, lyricsAsked = Date.distantPast, lyricsTries = 0
+    @ObservationIgnored private var lyricsKey: String?
+    @ObservationIgnored private var lyricsAsked = Date.distantPast
+    @ObservationIgnored private var lyricsTries = 0
     /// The lyrics follow the song: asked when it changes, and again (a few times) while the PC is still looking.
     private func lyricsFor(_ p: PeerView, _ s: PcStatus) {
         if !s.available || p.revision < 3 { lyrics = nil; lyricsKey = nil; return }
@@ -535,13 +540,13 @@ final class Hub {
     func closeIsland() { guard let l = link, let p = pc(), islandReady(p) else { return }; Task { _ = await io { l.closeIsland(p.id) } } }
 
     // ---- what a PC asks this iPhone (revision 6) ----
-    private func loadFocus() -> FocusState? {
-        guard let d = AppGroup.defaults.data(forKey: "focus"), let f = try? JSONDecoder().decode(FocusState.self, from: d) else { return nil }
+    private func loadFocus() -> FocusClock? {
+        guard let d = AppGroup.defaults.data(forKey: "focus"), let f = try? JSONDecoder().decode(FocusClock.self, from: d) else { return nil }
         // A countdown that has run out while this iPhone wasn't told is over.
         return (!f.running || f.mode == 2 || focusEnd(f) > Date()) ? f : nil
     }
-    func focusEnd(_ f: FocusState) -> Date { f.at.addingTimeInterval(max(0, f.duration - f.shown)) }
-    fileprivate func focusArrived(_ f: FocusState) {
+    func focusEnd(_ f: FocusClock) -> Date { f.at.addingTimeInterval(max(0, f.duration - f.shown)) }
+    fileprivate func focusArrived(_ f: FocusClock) {
         focus = f; if let d = try? JSONEncoder().encode(f) { AppGroup.defaults.set(d, forKey: "focus") }
         LiveActivities.shared.focus(f); Snapshotter.shared.reload()
     }
@@ -606,7 +611,8 @@ final class Hub {
     }
 
     // ---- this iPhone for the island ----
-    @ObservationIgnored private var sentBattery = -2, sentCharging = false
+    @ObservationIgnored private var sentBattery = -2
+    @ObservationIgnored private var sentCharging = false
     /// The battery level (and whether it charges) to every paired PC that is here, when it changed.
     func sendBattery(force: Bool = false) {
         let (percent, charging) = DeviceInfo.battery()
@@ -619,7 +625,8 @@ final class Hub {
         DispatchQueue.global().async { for t in targets { _ = l.notice(t, frame) } }
         sendDetails()
     }
-    @ObservationIgnored private var sentDetails: [String]?, detailsAt = Date.distantPast
+    @ObservationIgnored private var sentDetails: [String]?
+    @ObservationIgnored private var detailsAt = Date.distantPast
     /// This iPhone's readings to every paired island that shows them (0.20), when they changed, at least every five minutes
     /// while the iPhone is here, and at once when a PC arrives.
     func sendDetails(force: Bool = false) {

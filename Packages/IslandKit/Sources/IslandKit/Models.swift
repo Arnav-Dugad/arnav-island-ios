@@ -31,8 +31,10 @@ public struct Handoff: Equatable {
     }
 }
 
-public struct ShelfItem: Equatable, Hashable { public let name: String; public let size: Int64; public let folder: Bool; public let preview: [UInt8]? }
-public struct ShelfList: Equatable { public let shared: Bool; public let items: [ShelfItem]; public let error: String? }
+public struct ShelfItem: Equatable, Hashable { public let name: String; public let size: Int64; public let folder: Bool; public let preview: [UInt8]?
+    public init(name: String, size: Int64, folder: Bool, preview: [UInt8]?) { self.name = name; self.size = size; self.folder = folder; self.preview = preview } }
+public struct ShelfList: Equatable { public let shared: Bool; public let items: [ShelfItem]; public let error: String?
+    public init(shared: Bool, items: [ShelfItem], error: String?) { self.shared = shared; self.items = items; self.error = error } }
 
 /// What the PC reports for the remote: its media, sound, battery and a few readings.
 public struct PcStatus: Equatable {
@@ -75,7 +77,7 @@ public struct PcBattery: Equatable {
 }
 public struct BatteryPoint: Equatable, Hashable { public let at: Int64; public let percent: Int; public let charging: Bool }
 /// What a PC tells this device about its focus clock. mode 0 focus, 1 break, 2 stopwatch.
-public struct FocusState: Equatable, Codable { public var mode: Int, running: Bool, finished: Bool, shown: Double, duration: Double, pcName: String, at: Date }
+public struct FocusClock: Equatable, Codable { public var mode: Int, running: Bool, finished: Bool, shown: Double, duration: Double, pcName: String, at: Date }
 /// One of the island's settings. control: 0 switch, 1 slider, 2 choice, 3 stepper, 4 swatch, 5 button.
 public struct IslandSetting: Equatable, Identifiable {
     public var id: String { key + "|" + title }

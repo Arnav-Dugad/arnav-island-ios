@@ -9,7 +9,8 @@ import UIKit
 @Observable @MainActor
 final class Tilt {
     static let shared = Tilt()
-    var x = 0.0, y = 0.0
+    var x = 0.0
+    var y = 0.0
     @ObservationIgnored private let motion = CMMotionManager()
     @ObservationIgnored private var rest: (Double, Double)?
     private init() {}

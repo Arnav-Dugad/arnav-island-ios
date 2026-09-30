@@ -16,7 +16,7 @@ struct Ambient: View {
             TimelineView(.animation(minimumInterval: 1 / 30, paused: paused)) { ctx in
                 let s = ctx.date.timeIntervalSinceReferenceDate * (playing ? 0.16 : 0.07)
                 let tx = Float(tilt.x) * 0.06, ty = Float(tilt.y) * 0.05
-                func p(_ x: Float, _ y: Float, _ k: Double) -> SIMD2<Float> {
+                let p = { (x: Float, y: Float, k: Double) -> SIMD2<Float> in
                     SIMD2(x + Float(sin(s * (1 + k * 0.3) + k)) * 0.07 + tx * (1 - abs(x - 0.5) * 2), y + Float(cos(s * (0.8 + k * 0.2) + k * 1.7)) * 0.06 + ty * (1 - abs(y - 0.5) * 2))
                 }
                 let a = t.accent.opacity(t.dark ? 0.55 : 0.42), b = t.accent2.opacity(t.dark ? 0.45 : 0.34), d = Color.clear

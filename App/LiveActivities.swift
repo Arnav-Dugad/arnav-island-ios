@@ -74,7 +74,7 @@ final class LiveActivities {
         Task { await a.end(ActivityContent(state: state, staleDate: nil), dismissalPolicy: .after(Date().addingTimeInterval(4))) }
     }
 
-    func focus(_ f: FocusState) {
+    func focus(_ f: FocusClock) {
         guard enabled else { return }
         let end = Hub.shared.focusEnd(f)
         let state = FocusAttributes.ContentState(mode: f.mode, running: f.running, ends: end, shown: f.shown, duration: f.duration)

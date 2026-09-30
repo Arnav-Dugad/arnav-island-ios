@@ -142,8 +142,10 @@ struct PcScreenView: View {
     @State private var stats = (0, 0)
     @State private var bar = true
     @State private var typing = false
-    @State private var zoom: CGFloat = 1, zoomStart: CGFloat = 1
-    @State private var pan: CGSize = .zero, panStart: CGSize = .zero
+    @State private var zoom: CGFloat = 1
+    @State private var zoomStart: CGFloat = 1
+    @State private var pan: CGSize = .zero
+    @State private var panStart: CGSize = .zero
     @State private var attempt = 0
     @State private var pip: AVPictureInPictureController?
     @State private var hideBar: Task<Void, Never>?

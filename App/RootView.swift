@@ -28,7 +28,7 @@ struct RootView: View {
     private var hub: Hub { Hub.shared }
     @Environment(\.tokens) private var t
     @Environment(\.scenePhase) private var phase
-    @State private var page: Tab? = .remote
+    @State private var page: Tab? = Demo.argument("tab").flatMap(Int.init).flatMap(Tab.init(rawValue:)) ?? .remote
     @State private var pagePos: CGFloat = 0
     @State private var sheet: Sheet?
     @State private var screenOpen = false
