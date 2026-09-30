@@ -247,11 +247,13 @@ struct BatteryDay: View {
     @State private var picked: Date?
     var body: some View {
         let points = day.map { (Date(timeIntervalSince1970: Double($0.at)), $0.percent, $0.charging) }
+        // Each stretch of charging or not is its own line (so the charging ones can be green).
+        let runs: [Int] = { var r: [Int] = []; var n = 0; for (i, p) in points.enumerated() { if i > 0 && p.2 != points[i - 1].2 { n += 1 }; r.append(n) }; return r }()
         VStack(spacing: 2) {
             Chart {
-                ForEach(Array(points.enumerated()), id: \.offset) { _, p in
-                    AreaMark(x: .value("When", p.0), y: .value("Battery", p.1)).foregroundStyle(LinearGradient(colors: [t.accent.opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)).interpolationMethod(.monotone)
-                    LineMark(x: .value("When", p.0), y: .value("Battery", p.1)).foregroundStyle(p.2 ? t.good : t.accent).lineStyle(StrokeStyle(lineWidth: 2)).interpolationMethod(.monotone)
+                ForEach(Array(points.enumerated()), id: \.offset) { i, p in
+                    AreaMark(x: .value("When", p.0), y: .value("Battery", p.1), series: .value("Run", runs[i])).foregroundStyle(LinearGradient(colors: [(p.2 ? t.good : t.accent).opacity(0.25), .clear], startPoint: .top, endPoint: .bottom)).interpolationMethod(.monotone)
+                    LineMark(x: .value("When", p.0), y: .value("Battery", p.1), series: .value("Run", runs[i])).foregroundStyle(p.2 ? t.good : t.accent).lineStyle(StrokeStyle(lineWidth: 2)).interpolationMethod(.monotone)
                 }
                 if let picked, let near = points.min(by: { abs($0.0.timeIntervalSince(picked)) < abs($1.0.timeIntervalSince(picked)) }) {
                     RuleMark(x: .value("When", near.0)).foregroundStyle(t.text.opacity(0.3))

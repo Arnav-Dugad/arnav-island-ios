@@ -23,6 +23,8 @@ xcrun simctl boot "$DEVICE" 2>/dev/null || true
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4 || true
 xcrun simctl install "$DEVICE" "$APP"
+# The simulator's permissions, given up front (no camera prompt over the pairing sheet).
+for what in camera photos notifications; do xcrun simctl privacy "$DEVICE" grant "$what" "$BUNDLE" 2>/dev/null || true; done
 shot() { # name, appearance, then launch arguments
   local name="$1" look="$2"; shift 2
   xcrun simctl ui "$DEVICE" appearance "$look" || true
@@ -41,5 +43,11 @@ shot island-light light -tab 1
 shot banner-dark dark -tab 0 -banner "Received Moodboard.png"
 shot pair-dark dark -tab 0 -open pair
 shot trackpad-dark dark -tab 0 -open trackpad
+shot player-dark dark -tab 0 -open player
+shot music-dark dark -tab 0 -open music
+shot offer-dark dark -tab 2 -open offer
+shot ring-dark dark -tab 0 -open ring
+shot send-light light -tab 2 -transfer 1
+shot devices-light light -tab 4
 xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
 ls -la "$OUT"

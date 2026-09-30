@@ -46,7 +46,7 @@ final class ScreenStreamer: NSObject, Typist, AVPictureInPictureSampleBufferPlay
     func stop() {
         stopped = true; let s = session; session = nil
         sendQueue.async { _ = s?.send([UInt8(Proto.screenStop)]); Thread.sleep(forTimeInterval: 0.2); s?.close() }
-        layer.flushAndRemoveImage()
+        layer.sampleBufferRenderer.flush(removingDisplayedImage: true, completionHandler: nil)
     }
 
     private func run(_ s: ScreenSession, pcName: String) {
@@ -69,7 +69,7 @@ final class ScreenStreamer: NSObject, Typist, AVPictureInPictureSampleBufferPlay
             bytes += f.count
             guard let frame = assembler.add(f) else { continue }
             last = frame.number
-            if layer.status == .failed { layer.flush(); waitingKey = true; askKey() }
+            if layer.sampleBufferRenderer.status == .failed { layer.sampleBufferRenderer.flush(); waitingKey = true; askKey() }
             if waitingKey && !frame.key { askKey(); continue }
             if enqueue(frame) { waitingKey = false; shown += 1 } else { waitingKey = true; askKey() }
         }
@@ -110,8 +110,8 @@ final class ScreenStreamer: NSObject, Typist, AVPictureInPictureSampleBufferPlay
             CFDictionarySetValue(dict, Unmanaged.passUnretained(kCMSampleAttachmentKey_DisplayImmediately).toOpaque(), Unmanaged.passUnretained(kCFBooleanTrue).toOpaque())
             if !frame.key { CFDictionarySetValue(dict, Unmanaged.passUnretained(kCMSampleAttachmentKey_NotSync).toOpaque(), Unmanaged.passUnretained(kCFBooleanTrue).toOpaque()) }
         }
-        layer.enqueue(sample)
-        return layer.status != .failed
+        layer.sampleBufferRenderer.enqueue(sample)
+        return layer.sampleBufferRenderer.status != .failed
     }
 
     // Picture in Picture: live, always playing.

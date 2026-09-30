@@ -242,8 +242,9 @@ struct TypingField: View {
                 }, onBackspace: { input.key(VK.back); last = String(last.dropLast()) }, onKey: { vk, mods in
                     for m in mods { input.frame(Frames.key(m, 1)) }; input.frame(Frames.key(vk, 2)); for m in mods.reversed() { input.frame(Frames.key(m, 0)) }
                 })
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .frame(maxWidth: .infinity).frame(height: 22)
             }
+            .frame(height: 22)
             if typing { Button("Done") { typing = false }.font(TypeScale.caption).foregroundStyle(t.accent) }
         }
         .padding(.horizontal, 16).padding(.vertical, 13)
@@ -260,7 +261,7 @@ struct KeyCatcherView: UIViewRepresentable {
     func makeUIView(context: Context) -> Catcher { let c = Catcher(); c.onText = onText; c.onBackspace = onBackspace; c.onKey = onKey; c.onEnd = { active = false }; return c }
     func updateUIView(_ c: Catcher, context: Context) {
         c.onText = onText; c.onBackspace = onBackspace; c.onKey = onKey
-        DispatchQueue.main.async { if active && !c.isFirstResponder { c.becomeFirstResponder() } else if !active && c.isFirstResponder { c.resignFirstResponder() } }
+        DispatchQueue.main.async { if active && !c.isFirstResponder { c.becomeFirstResponder() } else if !active && c.isFirstResponder { _ = c.resignFirstResponder() } }
     }
     final class Catcher: UIView, UIKeyInput {
         var onText: (String) -> Void = { _ in }, onBackspace: () -> Void = {}, onKey: (Int, [Int]) -> Void = { _, _ in }, onEnd: () -> Void = {}

@@ -26,7 +26,13 @@ enum Demo {
             Moment(kind: 2, title: "Invoice October.pdf", from: "Studio PC", count: 1, size: 184_000, at: Date().addingTimeInterval(-86_000), files: []),
         ]
         if argument("transfer") != nil { hub.transfers = [7: Transfer(id: 7, peer: Sample.pcId, name: "Studio PC", title: "Holiday.mov", done: 312_000_000, total: 540_000_000, outgoing: true, rate: 18_400_000)] }
-        if let b = argument("banner") { hub.show(Banner(kind: .received, title: b, detail: "From Studio PC  ·  2.4 MB")) }
+        if let b = argument("banner") { Task { try? await Task.sleep(for: .seconds(4)); hub.show(Banner(kind: .received, title: b, detail: "From Studio PC  ·  2.4 MB")) } }
+        switch argument("open") {
+        case "ring": hub.ringing = "Studio PC"
+        case "music": hub.music = MusicOffer(transfer: 9, peer: Sample.pcId, name: "Studio PC", music: Handoff(title: "Glass Horizons", artist: "Aurora Fields", app: "Spotify", position: 71, duration: 214, playing: true, cover: bytes))
+        case "offer": hub.offers = [Offer(transfer: 11, peer: Sample.pcId, name: "Studio PC", title: "Holiday photos", count: 48, size: 812_000_000, folder: true)]
+        default: break
+        }
     }
     static var shelfPreview: [UInt8]? { art(side: 160).jpegData(compressionQuality: 0.7).map { [UInt8]($0) } }
 

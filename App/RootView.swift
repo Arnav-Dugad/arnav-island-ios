@@ -52,12 +52,14 @@ struct RootView: View {
                     if Player.shared.active { PlayingHereBar().transition(.move(edge: .bottom).combined(with: .opacity)) }
                     TabBar(selected: page ?? .remote, position: pagePos) { tab in withAnimation(.spring(response: 0.45, dampingFraction: 0.86)) { page = tab } }
                 }
-                .padding(.horizontal, 16).padding(.bottom, max(8, g.safeAreaInsets.bottom > 0 ? 0 : 12))
+                .padding(.horizontal, 16).padding(.bottom, g.safeAreaInsets.bottom > 0 ? max(14, g.safeAreaInsets.bottom - 14) : 12)
+                .ignoresSafeArea(edges: .bottom)
                 MiniIsland(hardware: hardware, safeTop: g.safeAreaInsets.top, expanded: $islandOpen) { tapIsland() }
                 if let name = hub.ringing { RingOverlay(name: name).transition(.opacity).zIndex(5) }
             }
             .onAppear { safeTop = g.safeAreaInsets.top }
         }
+        .background { KeyShortcuts(page: $page, onTrackpad: { handle("trackpad") }, onScreen: { openScreen() }) }
         .sheet(item: $sheet, onDismiss: nextIncoming) { s in sheetView(s).environment(hub).environment(\.tokens, t) }
         .fullScreenCover(isPresented: $screenOpen) { PcScreenView().environment(hub).environment(\.tokens, t) }
         .fullScreenCover(isPresented: $cameraOpen) { CameraToPCView().environment(hub).environment(\.tokens, t) }
@@ -163,6 +165,7 @@ struct RootView: View {
         case "page": if hub.page != nil { sheet = .page }
         case "link": sheet = .link
         case "ring": Ringer.shared.stop()
+        case "player": if hub.status?.available == true { withAnimation { islandOpen = true } }
         default: break
         }
     }
@@ -270,5 +273,27 @@ struct RingOverlay: View {
         }
         .onAppear { withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) { pulse = true } }
         .accessibilityElement(children: .contain).accessibilityAddTraits(.isModal)
+    }
+}
+
+/// With a keyboard (an iPad's, or one paired to the iPhone): space plays, arrows skip and change the volume, ⌘1–⌘5 switch
+/// tabs, T opens the trackpad and S the PC's screen.
+struct KeyShortcuts: View {
+    @Binding var page: Tab?
+    var onTrackpad: () -> Void; var onScreen: () -> Void
+    private var hub: Hub { Hub.shared }
+    var body: some View {
+        ZStack {
+            Button("Play or pause") { Task { await hub.media(1) } }.keyboardShortcut(.space, modifiers: [])
+            Button("Previous") { Task { await hub.media(2) } }.keyboardShortcut(.leftArrow, modifiers: [])
+            Button("Next") { Task { await hub.media(3) } }.keyboardShortcut(.rightArrow, modifiers: [])
+            Button("Volume up") { Task { await hub.setVolume((hub.status?.volume ?? 50) + 5) } }.keyboardShortcut(.upArrow, modifiers: [])
+            Button("Volume down") { Task { await hub.setVolume((hub.status?.volume ?? 50) - 5) } }.keyboardShortcut(.downArrow, modifiers: [])
+            Button("Mute") { Task { await hub.toggleMute() } }.keyboardShortcut("m", modifiers: [])
+            Button("Trackpad", action: onTrackpad).keyboardShortcut("t", modifiers: [])
+            Button("Your PC's screen", action: onScreen).keyboardShortcut("s", modifiers: [])
+            ForEach(Tab.allCases) { tab in Button(tab.title) { withAnimation { page = tab } }.keyboardShortcut(KeyEquivalent(Character(String(tab.rawValue + 1))), modifiers: .command) }
+        }
+        .opacity(0).frame(width: 0, height: 0).allowsHitTesting(false).accessibilityHidden(true)
     }
 }

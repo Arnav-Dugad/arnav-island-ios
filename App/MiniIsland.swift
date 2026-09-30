@@ -41,14 +41,18 @@ struct MiniIsland: View {
             let full = min(g.size.width - 22, 400)
             let base = hardware?.width ?? 150
             let playing = hub.status?.available == true
+            // Beside the camera: room on the left (the clock is far left) but little on the right, where the signal
+            // bars begin; so the island grows mostly leftwards, as the system's own activities seem to.
+            let sides = extras(m)
             let width: CGFloat = {
                 switch m {
                 case .hidden: return base
-                case .rest: return hardware != nil ? base + (playing ? 92 : 84) : (playing ? 190 : 150)
-                case .transfer: return hardware != nil ? base + 124 : 250
+                case .rest: return hardware != nil ? base + sides.0 + sides.1 : (playing ? 190 : 150)
+                case .transfer: return hardware != nil ? base + sides.0 + sides.1 : 250
                 case .banner, .player: return full
                 }
             }()
+            let shift: CGFloat = hardware != nil && (m == .rest || m == .transfer) ? (sides.1 - sides.0) / 2 : 0
             let height: CGFloat = {
                 switch m {
                 case .banner: return (hardware?.height ?? 0) + 72
@@ -68,10 +72,10 @@ struct MiniIsland: View {
             .clipShape(RoundedRectangle(cornerRadius: radius, style: .continuous))
             .shadow(color: .black.opacity(m == .banner || m == .player ? 0.35 : 0), radius: 18, y: 8)
             .opacity(m == .hidden ? 0 : 1)
-            .position(x: g.size.width / 2, y: top + height / 2)
+            .position(x: g.size.width / 2 + shift, y: top + height / 2)
             .animation(reduce ? .easeInOut(duration: 0.2) : .spring(response: 0.46, dampingFraction: m == .banner || m == .player ? 0.74 : 0.82), value: m)
             .animation(.spring(response: 0.46, dampingFraction: 0.82), value: width)
-            .contentShape(Rectangle().size(width: width, height: height).offset(x: (g.size.width - width) / 2, y: top))
+            .contentShape(Rectangle().size(width: width, height: height).offset(x: (g.size.width - width) / 2 + shift, y: top))
             .onTapGesture { Haptics.tick(); onTap() }
             .gesture(DragGesture(minimumDistance: 12).onEnded { d in
                 if d.translation.height < -12 { if hub.banner != nil { hub.dismissBanner() } else { expanded = false } }
@@ -83,6 +87,13 @@ struct MiniIsland: View {
         }
         .ignoresSafeArea()
     }
+
+    /// What the island adds on its left and right beside the hardware island.
+    private func extras(_ m: Mode) -> (CGFloat, CGFloat) {
+        switch m { case .rest: return hub.status?.available == true ? (42, 18) : (38, 18); case .transfer: return (40, 18); default: return (0, 0) }
+    }
+    /// The island is always black: its colours are the song's own, bright, in light mode too.
+    private var bright: Color { t.palette.accent }
 
     @ViewBuilder private func shape(_ radius: CGFloat) -> some View {
         if hardware != nil { RoundedRectangle(cornerRadius: radius, style: .continuous).fill(.black) }
@@ -112,33 +123,35 @@ struct MiniIsland: View {
         HStack(spacing: 0) {
             if let s = hub.status, s.available {
                 CoverImage(image: hub.cover, radius: 7).frame(width: 24, height: 24)
-                Spacer(minLength: hardware?.width ?? 8)
-                if hardware == nil { Text(s.title).font(TypeScale.caption).foregroundStyle(.white.opacity(0.86)).lineLimit(1); Spacer(minLength: 6) }
-                Equalizer(playing: s.playing, width: 20, height: 13, color: t.accent)
+                if hardware == nil { Text(s.title).font(TypeScale.caption).foregroundStyle(.white.opacity(0.86)).lineLimit(1).padding(.leading, 8) }
+                Spacer(minLength: 0)
+                Equalizer(playing: s.playing, width: hardware != nil ? 10 : 18, height: 12, bars: 3, color: bright)
             } else if let p = hub.pc() {
-                Image(systemName: "laptopcomputer").font(.system(size: 14, weight: .semibold)).foregroundStyle(p.online ? t.accent : .white.opacity(0.45))
-                Spacer(minLength: hardware?.width ?? 8)
-                if hardware == nil { Text(p.name).font(TypeScale.caption).foregroundStyle(.white.opacity(0.8)).lineLimit(1); Spacer(minLength: 6) }
-                if p.online && hub.internet { QualityRing(q: Quality.of(p, t), size: 14, stroke: 2) } else { LiveDot(on: p.online, size: 7) }
+                Image(systemName: "laptopcomputer").font(.system(size: 14, weight: .semibold)).foregroundStyle(p.online ? bright : .white.opacity(0.45))
+                if hardware == nil { Text(p.name).font(TypeScale.caption).foregroundStyle(.white.opacity(0.8)).lineLimit(1).padding(.leading, 8) }
+                Spacer(minLength: 0)
+                if p.online && hub.internet { QualityRing(q: Quality.of(p, t), size: 11, stroke: 2) } else { Circle().fill(p.online ? t.good : .white.opacity(0.4)).frame(width: 7, height: 7) }
             } else {
                 Text("No PC yet").font(TypeScale.caption).foregroundStyle(.white.opacity(0.8)).frame(maxWidth: .infinity)
             }
         }
-        .padding(.horizontal, 12)
+        .padding(.leading, hardware != nil ? 10 : 12).padding(.trailing, hardware != nil ? 5 : 12)
     }
     private func transferFace(_ tr: Transfer) -> some View {
         HStack(spacing: 8) {
-            Image(systemName: tr.outgoing ? "arrow.up" : "arrow.down").font(.system(size: 14, weight: .bold)).foregroundStyle(t.accent)
-                .symbolEffect(.wiggle.up, options: .repeating.speed(0.5), value: tr.outgoing)
+            ZStack {
+                ProgressRing(fraction: tr.fraction, track: .white.opacity(0.16), color: bright, size: 22, stroke: 2.5)
+                Image(systemName: tr.outgoing ? "arrow.up" : "arrow.down").font(.system(size: 10, weight: .heavy)).foregroundStyle(bright)
+            }
             if hardware == nil { Text(tr.title).font(TypeScale.caption).foregroundStyle(.white).lineLimit(1) }
-            Spacer(minLength: hardware?.width ?? 4)
-            Text("\(Int(tr.fraction * 100))%").font(TypeScale.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.75)).contentTransition(.numericText(value: tr.fraction))
-            ProgressRing(fraction: tr.fraction, track: .white.opacity(0.16), color: t.accent, size: 20, stroke: 3)
+            Spacer(minLength: 0)
+            if hardware == nil { Text("\(Int(tr.fraction * 100))%").font(TypeScale.caption.monospacedDigit()).foregroundStyle(.white.opacity(0.75)).contentTransition(.numericText(value: tr.fraction)) }
+            else { Text("\(Int(tr.fraction * 100))").font(.system(size: 10, weight: .bold).monospacedDigit()).foregroundStyle(.white.opacity(0.8)).frame(width: 13).minimumScaleFactor(0.6) }
         }
-        .padding(.horizontal, 12)
+        .padding(.leading, hardware != nil ? 9 : 12).padding(.trailing, hardware != nil ? 3 : 12)
     }
     private func bannerFace(_ b: Banner, band: CGFloat) -> some View {
-        let tint: Color = { switch b.kind { case .failed: return t.danger; case .received, .sent: return t.good; case .ring: return t.warn; default: return t.accent } }()
+        let tint: Color = { switch b.kind { case .failed: return t.danger; case .received, .sent: return t.good; case .ring: return t.warn; default: return bright } }()
         return HStack(spacing: 12) {
             Image(systemName: b.symbol).font(.system(size: 22, weight: .semibold)).foregroundStyle(tint)
                 .frame(width: 46, height: 46).background(Circle().fill(tint.opacity(0.2)))
@@ -165,9 +178,9 @@ struct IslandPlayer: View {
         VStack(spacing: 0) {
             HStack(alignment: .top) {
                 CoverImage(image: hub.cover, radius: 16).frame(width: 60, height: 60)
-                    .shadow(color: t.accent.opacity(0.4), radius: 10)
+                    .shadow(color: t.palette.accent.opacity(0.4), radius: 10)
                 Spacer()
-                Equalizer(playing: playing, width: 24, height: 18, color: t.accent).padding(.top, 8)
+                Equalizer(playing: playing, width: 24, height: 18, color: t.palette.accent).padding(.top, 8)
             }
             HStack {
                 VStack(alignment: .leading, spacing: 1) {

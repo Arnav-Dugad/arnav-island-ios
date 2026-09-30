@@ -566,7 +566,7 @@ final class Hub {
             return []
         case Proto.queryPhoto:
             let r = Reader(payload); guard let id = r.u64() else { return nil }; let purpose = r.u8() ?? 1; let ask = r.u32() ?? 0
-            guard RecentPhotos.shared.told(peer, id) else { return nil }
+            guard RecentPhotos.told.has(peer, id) else { return nil }
             DispatchQueue.main.async { MainActor.assumeIsolated { RecentPhotos.shared.send(peer: peer, id: id, toShelf: purpose == 2, ask: ask) } }
             return []
         case Proto.queryPage:

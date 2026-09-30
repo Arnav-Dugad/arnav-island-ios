@@ -29,7 +29,7 @@ struct SendScreen: View {
     @State private var preparing = false
 
     var body: some View {
-        let pc = hub.pc(), paired = hub.pairedPCs
+        let pc = hub.pc(), paired = hub.pairedPCs, compatible = hub.prefs.compatible
         VStack(spacing: 0) {
             ScreenTitle(title: "Send", over: pc.map { "To \($0.name)" } ?? "Pair a PC first") { if preparing { ProgressView() } }
             if paired.count > 1 {
@@ -39,7 +39,7 @@ struct SendScreen: View {
             if let pc {
                 LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
                     PhotosPicker(selection: $picked, maxSelectionCount: 50, matching: .any(of: [.images, .videos, .livePhotos]), preferredItemEncoding: .current) {
-                        TileFace(symbol: "photo.on.rectangle.angled", title: "Photos & videos", detail: hub.prefs.compatible ? "Full quality; HEIC as JPEG" : "Full quality, as they are", tint: t.accent)
+                        TileFace(symbol: "photo.on.rectangle.angled", title: "Photos & videos", detail: compatible ? "Full quality; HEIC as JPEG" : "Full quality, as they are", tint: t.accent)
                     }
                     .buttonStyle(PressStyle(scale: 0.95))
                     GlassTile(symbol: "folder.fill", title: "Files", detail: "Anything, any size, folders too", tint: t.accent2) { importing = true }
@@ -259,16 +259,17 @@ struct ShelfTile: View {
     var body: some View {
         Button { Haptics.tap(); onTake() } label: {
             VStack(alignment: .leading, spacing: 0) {
-                ZStack {
+                Color.clear.aspectRatio(1.25, contentMode: .fit).overlay {
                     if let p = item.preview, let img = UIImage(data: Data(p)) { Image(uiImage: img).resizable().scaledToFill() }
-                    else { t.accent.opacity(0.1); Image(systemName: item.folder ? "folder.fill" : symbolFor(item.name)).font(.system(size: 34)).foregroundStyle(t.accent) }
+                    else { ZStack { t.accent.opacity(0.1); Image(systemName: item.folder ? "folder.fill" : symbolFor(item.name)).font(.system(size: 34)).foregroundStyle(t.accent) } }
+                }
+                .overlay {
                     if let m = moving { Color.black.opacity(0.45); ProgressRing(fraction: m.fraction, track: .white.opacity(0.25), color: .white, size: 46, stroke: 4) }
                     else if done {
                         Image(systemName: "checkmark.circle.fill").font(.system(size: 26)).foregroundStyle(.white, t.good).symbolEffect(.bounce, value: done)
                             .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing).padding(8).transition(.scale.combined(with: .opacity))
                     }
                 }
-                .frame(maxWidth: .infinity).aspectRatio(1.25, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 Text(item.name).font(TypeScale.bodyStrong).foregroundStyle(t.text).lineLimit(1).padding(.top, 9).padding(.horizontal, 4)
                 Text(item.folder ? "Folder  ·  \(sizeText(item.size))" : sizeText(item.size)).font(TypeScale.caption).foregroundStyle(t.muted).padding(.horizontal, 4)
