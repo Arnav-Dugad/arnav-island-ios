@@ -5,3 +5,4 @@ DerivedData/
 *.ipa
 .swiftpm/
 Packages/IslandKit/.build/
+__pycache__/

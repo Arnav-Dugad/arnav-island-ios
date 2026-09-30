@@ -1,4 +1,4 @@
-// swift-tools-version:5.10
+// swift-tools-version:6.0
 // IslandKit: Arnav Island's sharing protocol for Apple platforms, byte for byte as the Windows island and the Android app
 // speak it. Plain Foundation, CryptoKit, Network and Darwin: the tests run it on a Mac against the island's own engine.
 import PackageDescription
@@ -10,5 +10,6 @@ let package = Package(
     targets: [
         .target(name: "IslandKit", path: "Sources/IslandKit"),
         .testTarget(name: "IslandKitTests", dependencies: ["IslandKit"], path: "Tests/IslandKitTests"),
-    ]
+    ],
+    swiftLanguageModes: [.v5]
 )
