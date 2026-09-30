@@ -30,7 +30,9 @@ final class Decision {
 public final class Link {
     public struct Options {
         public var phone = true, brokers = Relay.defaultBrokers, loseEvery = 0, direct = true, directLoopback = false
-        public init(phone: Bool = true, loseEvery: Int = 0, direct: Bool = true, directLoopback: Bool = false) { self.phone = phone; self.loseEvery = loseEvery; self.direct = direct; self.directLoopback = directLoopback }
+        /// A second copy of this device (the share sheet): sends, takes nothing, leaves quietly.
+        public var guest = false
+        public init(phone: Bool = true, loseEvery: Int = 0, direct: Bool = true, directLoopback: Bool = false, guest: Bool = false) { self.phone = phone; self.loseEvery = loseEvery; self.direct = direct; self.directLoopback = directLoopback; self.guest = guest }
     }
     private final class Peer { var name = "", key: [UInt8]?, phone = false, revision = 0 }
     private struct Target { let name: String; let key: [UInt8]; let revision: Int }
@@ -85,7 +87,7 @@ public final class Link {
             }
         }
         let r = Relay(id: id, name: { [weak self] in self?.displayName ?? "iPhone" }, phone: options.phone, revision: Proto.revision, brokers: options.brokers,
-                      loseEvery: options.loseEvery, direct: options.direct, directLoopback: options.directLoopback,
+                      loseEvery: options.loseEvery, direct: options.direct, directLoopback: options.directLoopback, guest: options.guest,
                       incoming: { [weak self] t, _ in let c = Conn(t); self?.incoming(c); c.close() },
                       changed: { [weak self] in self?.postPeers() })
         relay = r; r.start(); syncRelay()

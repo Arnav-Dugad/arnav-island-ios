@@ -77,6 +77,9 @@ final class Relay {
     private let loseEvery: Int
     private let directOn: Bool
     private let directLoopback: Bool
+    /// A second copy of this device (the share sheet, while the app may run too): it opens connections but takes none,
+    /// and leaves without saying goodbye (the app is still here).
+    private let guest: Bool
     private let brokers: [Broker]
     private let lock = NSCondition()
     private var routes: [String: Route] = [:]
@@ -96,10 +99,10 @@ final class Relay {
     private let sleeper = NSCondition()
 
     init(id: [UInt8], name: @escaping () -> String, phone: Bool, revision: Int, brokers: [(String, UInt16)] = Relay.defaultBrokers,
-                loseEvery: Int = 0, direct: Bool = true, directLoopback: Bool = false,
+                loseEvery: Int = 0, direct: Bool = true, directLoopback: Bool = false, guest: Bool = false,
                 incoming: @escaping (Tunnel, String) -> Void, changed: @escaping () -> Void) {
         self.id = id; self.name = name; self.phone = phone; self.revision = revision; self.incoming = incoming; self.changed = changed
-        self.loseEvery = loseEvery; self.directOn = direct; self.directLoopback = directLoopback
+        self.loseEvery = loseEvery; self.directOn = direct && !guest; self.directLoopback = directLoopback; self.guest = guest
         self.brokers = brokers.prefix(6).enumerated().map { Broker(index: $0.offset, host: $0.element.0, port: $0.element.1) }
     }
 
@@ -115,7 +118,7 @@ final class Relay {
         spawn("relay-resend") { [weak self] in self?.resendLoop() }
     }
     public func stop() {
-        if connected {
+        if connected && !guest {
             let pairs = locked { routes.filter { !$0.value.code }.map { $0.key } }
             for p in pairs { hello(p, reply: false, leaving: true, broker: -1) }
             _ = writeTo(-1, [0xE0, 0])
@@ -303,6 +306,7 @@ final class Relay {
             if flags & Relay.helloReply != 0 { hello(topic, reply: false, leaving: false, broker: from) }
             if changedNow { changed() }
         case Relay.kindOpen:
+            if guest { return }
             guard let conn = rd.u64() else { return }
             if locked({ tunnels[conn] != nil || ended[conn] != nil }) { return }
             guard let t = startTunnel(conn, r.outbox, r.seal, from, nil, topic) else { return }
