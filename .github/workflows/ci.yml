@@ -1,0 +1,80 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      island_code:
+        description: A pairing code a test PC shows (runs the live interop test)
+        required: false
+        default: ''
+      island_key:
+        description: Its QR code's key print (k=...)
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  kit:
+    name: IslandKit tests
+    runs-on: macos-26
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app && swift --version
+      - name: Test the protocol
+        working-directory: Packages/IslandKit
+        env:
+          ISLAND_CODE: ${{ inputs.island_code }}
+          ISLAND_KEY: ${{ inputs.island_key }}
+        run: swift test 2>&1 | tee ../../kit-test.log; exit ${PIPESTATUS[0]}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: kit-test-log
+          path: kit-test.log
+
+  app:
+    name: Build the app
+    runs-on: macos-26
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode and tools
+        run: |
+          sudo xcode-select -s /Applications/Xcode_26.6.app
+          brew install xcodegen ldid
+      - name: Generate the project
+        run: xcodegen generate
+      - name: Build (unsigned: AltStore or SideStore signs it with your own Apple ID)
+        run: |
+          set -o pipefail
+          xcodebuild -project ArnavIsland.xcodeproj -scheme ArnavIsland -configuration Release \
+            -sdk iphoneos -destination 'generic/platform=iOS' -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build 2>&1 | tee build.log | grep -E "error:|warning: unre|BUILD (SUCCEEDED|FAILED)" || true
+          test -d build/Build/Products/Release-iphoneos/ArnavIsland.app
+      - name: Package the IPA
+        run: scripts/package.sh build/Build/Products/Release-iphoneos/ArnavIsland.app ArnavIsland.ipa
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-log
+          path: build.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ArnavIsland-ipa
+          path: ArnavIsland.ipa
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shasum -a 256 ArnavIsland.ipa | cut -d' ' -f1 > ArnavIsland.ipa.sha256
+          gh release upload "${GITHUB_REF_NAME}" ArnavIsland.ipa ArnavIsland.ipa.sha256 --clobber

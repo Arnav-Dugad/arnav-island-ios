@@ -1,0 +1,163 @@
+name: ArnavIsland
+options:
+  bundleIdPrefix: io.github.arnavdugad
+  deploymentTarget:
+    iOS: "18.0"
+  xcodeVersion: "26.6"
+  createIntermediateGroups: true
+  developmentLanguage: en
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+    CODE_SIGN_STYLE: Manual
+    CODE_SIGNING_ALLOWED: NO
+    DEVELOPMENT_TEAM: ""
+    ENABLE_USER_SCRIPT_SANDBOXING: NO
+    SWIFT_STRICT_CONCURRENCY: minimal
+    IPHONEOS_DEPLOYMENT_TARGET: "18.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    ENABLE_PREVIEWS: NO
+    SWIFT_OPTIMIZATION_LEVEL: "-O"
+    DEBUG_INFORMATION_FORMAT: dwarf
+packages:
+  IslandKit:
+    path: Packages/IslandKit
+targets:
+  ArnavIsland:
+    type: application
+    platform: iOS
+    sources:
+      - App
+      - Shared
+    dependencies:
+      - package: IslandKit
+      - target: IslandWidgets
+        embed: true
+        codeSign: false
+      - target: IslandShare
+        embed: true
+        codeSign: false
+    entitlements:
+      path: entitlements/ArnavIsland.entitlements
+      properties:
+        com.apple.security.application-groups: [group.io.github.arnavdugad.arnavisland]
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Arnav Island
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        LSRequiresIPhoneOS: true
+        ITSAppUsesNonExemptEncryption: false
+        UIApplicationSupportsIndirectInputEvents: true
+        UIFileSharingEnabled: true
+        LSSupportsOpeningDocumentsInPlace: true
+        UIStatusBarStyle: UIStatusBarStyleLightContent
+        UILaunchScreen:
+          UIColorName: LaunchBackground
+          UIImageName: LaunchIsland
+          UIImageRespectsSafeAreaInsets: true
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UISupportedInterfaceOrientations~ipad: [UIInterfaceOrientationPortrait, UIInterfaceOrientationPortraitUpsideDown, UIInterfaceOrientationLandscapeLeft, UIInterfaceOrientationLandscapeRight]
+        UIBackgroundModes: [audio, fetch, processing]
+        BGTaskSchedulerPermittedIdentifiers: [io.github.arnavdugad.arnavisland.refresh]
+        NSSupportsLiveActivities: true
+        NSSupportsLiveActivitiesFrequentUpdates: true
+        NSLocalNetworkUsageDescription: Arnav Island connects straight to your PC on this Wi-Fi, end-to-end encrypted, for fast files and a smooth screen.
+        NSCameraUsageDescription: To scan your PC's pairing code, take photos for its Shelf, and show this iPhone's camera on your PC.
+        NSPhotoLibraryUsageDescription: To send photos and videos to your PC, and to show a photo you just took on your PC's island.
+        NSPhotoLibraryAddUsageDescription: To save photos and videos your PC sends you.
+        NSFaceIDUsageDescription: To lock Arnav Island with Face ID.
+        NSMotionUsageDescription: The light on the glass follows how you tilt your iPhone.
+        CFBundleURLTypes:
+          - CFBundleURLName: io.github.arnavdugad.arnavisland
+            CFBundleURLSchemes: [arnavisland]
+        NSUserActivityTypes: [io.github.arnavdugad.arnavisland.remote]
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.arnavdugad.arnavisland
+        PRODUCT_NAME: ArnavIsland
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: APP
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
+  IslandWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Widgets
+      - Shared
+    dependencies:
+      - package: IslandKit
+      - sdk: WidgetKit.framework
+      - sdk: SwiftUI.framework
+    entitlements:
+      path: entitlements/IslandWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.io.github.arnavdugad.arnavisland]
+    info:
+      path: Widgets/Info.plist
+      properties:
+        CFBundleDisplayName: Arnav Island
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSSupportsLiveActivities: true
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.arnavdugad.arnavisland.widgets
+        PRODUCT_NAME: IslandWidgets
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: WIDGETS
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+  IslandShare:
+    type: app-extension
+    platform: iOS
+    sources:
+      - Share
+      - Shared
+    dependencies:
+      - package: IslandKit
+    entitlements:
+      path: entitlements/IslandShare.entitlements
+      properties:
+        com.apple.security.application-groups: [group.io.github.arnavdugad.arnavisland]
+    info:
+      path: Share/Info.plist
+      properties:
+        CFBundleDisplayName: Arnav Island
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        NSLocalNetworkUsageDescription: Arnav Island connects straight to your PC on this Wi-Fi, end-to-end encrypted.
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.share-services
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShareViewController
+          NSExtensionAttributes:
+            NSExtensionJavaScriptPreprocessingFile: PagePosition
+            NSExtensionActivationRule:
+              NSExtensionActivationSupportsFileWithMaxCount: 100
+              NSExtensionActivationSupportsImageWithMaxCount: 100
+              NSExtensionActivationSupportsMovieWithMaxCount: 100
+              NSExtensionActivationSupportsText: true
+              NSExtensionActivationSupportsWebURLWithMaxCount: 1
+              NSExtensionActivationSupportsWebPageWithMaxCount: 1
+              NSExtensionActivationSupportsAttachmentsWithMaxCount: 100
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: io.github.arnavdugad.arnavisland.share
+        PRODUCT_NAME: IslandShare
+        SWIFT_ACTIVE_COMPILATION_CONDITIONS: SHARE
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks @executable_path/../../Frameworks"
+schemes:
+  ArnavIsland:
+    build:
+      targets:
+        ArnavIsland: all
+    run:
+      config: Debug
+    archive:
+      config: Release
