@@ -33,7 +33,7 @@ final class ShareModel: ObservableObject {
     @Published var note: String?
     @Published var connecting = true
     var done: () -> Void = {}
-    private var link: Link?
+    private var link: IslandKit.Link?
     private var transfers: [Int: String] = [:]
     private var closed = false
     private let accent = Color(red: 0.65, green: 0.85, blue: 0.77)
@@ -91,7 +91,7 @@ final class ShareModel: ObservableObject {
         guard store.hasIdentity, !known.isEmpty else { connecting = false; note = "Open Arnav Island and pair with your PC first"; return }
         let prefs = (AppGroup.defaults.data(forKey: "prefs").flatMap { try? JSONSerialization.jsonObject(with: $0) as? [String: Any] }) ?? [:]
         let name = (prefs["name"] as? String).flatMap { $0.isEmpty ? nil : $0 } ?? UIDevice.current.model
-        let l = Link(store: store, name: name, inbox: NoInbox(), options: Link.Options(phone: true, direct: false, guest: true)) { [weak self] e in DispatchQueue.main.async { self?.event(e) } }
+        let l = IslandKit.Link(store: store, name: name, inbox: NoInbox(), options: IslandKit.Link.Options(phone: true, direct: false, guest: true)) { [weak self] e in DispatchQueue.main.async { self?.event(e) } }
         link = l
         Task.detached { [weak self] in
             let ok = l.start()

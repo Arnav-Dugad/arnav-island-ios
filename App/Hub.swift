@@ -74,7 +74,7 @@ func io<T>(_ work: @escaping () -> T) async -> T {
 final class Hub {
     static let shared = Hub()
 
-    @ObservationIgnored private(set) var link: Link?
+    @ObservationIgnored private(set) var link: IslandKit.Link?
     var running = false
     var failure: String?
     var peers: [PeerView] = []
@@ -143,12 +143,12 @@ final class Hub {
     func phoneName() -> String { let n = prefs.name.trimmingCharacters(in: .whitespaces); return n.isEmpty ? DeviceInfo.modelName : n }
 
     // ---- the link ----
-    @discardableResult func start() async -> Link? {
+    @discardableResult func start() async -> IslandKit.Link? {
         if let link { return link }
         if starting { for _ in 0..<80 { try? await Task.sleep(for: .milliseconds(100)); if let link { return link } }; return link }
         starting = true; defer { starting = false }
-        let options = Link.Options(phone: true, direct: true)
-        let l = Link(store: KeychainStore.shared, name: phoneName(), inbox: FolderInbox.shared, options: options) { e in DispatchQueue.main.async { Hub.shared.handle(e) } }
+        let options = IslandKit.Link.Options(phone: true, direct: true)
+        let l = IslandKit.Link(store: KeychainStore.shared, name: phoneName(), inbox: FolderInbox.shared, options: options) { e in DispatchQueue.main.async { Hub.shared.handle(e) } }
         l.onQuery = { peer, command, payload in Hub.answerQuery(peer, command, payload) }
         l.onClipboard = { text, sensitive in Hub.clipboardIn(text, sensitive) }
         let ok = await io { l.start() }
