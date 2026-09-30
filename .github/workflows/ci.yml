@@ -91,7 +91,7 @@ jobs:
           sudo xcode-select -s /Applications/Xcode_26.6.app
           brew install xcodegen
       - name: Build for the simulator and take the screenshots
-        run: scripts/screens.sh
+        run: bash scripts/screens.sh
       - uses: actions/upload-artifact@v4
         if: always()
         with:
