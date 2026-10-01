@@ -7,6 +7,15 @@ It talks to your PC with the island's own protocol, byte for byte, and is tested
 - AES-256-GCM sealing
 - the free MQTT relays, or straight over your Wi-Fi
 
+<p align="center">
+  <img src="docs/screens/remote-dark.jpg" width="200" alt="The remote">
+  <img src="docs/screens/player-dark.jpg" width="200" alt="The island opened into the song's card">
+  <img src="docs/screens/island-dark.jpg" width="200" alt="Everything on the PC's island">
+  <img src="docs/screens/remote-light.jpg" width="200" alt="The remote in light mode">
+</p>
+
+**[Download ArnavIsland.ipa](https://github.com/Arnav-Dugad/arnav-island-ios/releases/latest)**: install it free with AltStore. The step-by-step guide is [below](#put-it-on-an-iphone-for-free).
+
 ## What it does
 
 **Your PC, in your hand**

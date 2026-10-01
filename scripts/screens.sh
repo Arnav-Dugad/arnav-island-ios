@@ -33,7 +33,7 @@ shot() { # name, appearance, then launch arguments
   xcrun simctl ui "$DEVICE" appearance "$look" || true
   xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
   xcrun simctl launch "$DEVICE" "$BUNDLE" -demo "$@" >/dev/null
-  sleep 7
+  sleep 9
   xcrun simctl io "$DEVICE" screenshot "$OUT/$name.png" >/dev/null 2>&1 && echo "shot $name"
 }
 # A first launch to warm up (the very first one is slow: its frames would show the launch screen).

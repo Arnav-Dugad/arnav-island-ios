@@ -16,7 +16,12 @@
       "iconURL": "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/App/Assets.xcassets/AppIcon.appiconset/icon.png",
       "tintColor": "#A5D8C5",
       "category": "utilities",
-      "screenshots": [],
+      "screenshots": [
+        "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/docs/screens/remote-dark.jpg",
+        "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/docs/screens/island-dark.jpg",
+        "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/docs/screens/player-dark.jpg",
+        "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/docs/screens/send-dark.jpg"
+      ],
       "versions": [
         {
           "version": "1.0.0",
@@ -24,12 +29,14 @@
           "date": "2026-10-01",
           "localizedDescription": "The first version.",
           "downloadURL": "https://github.com/Arnav-Dugad/arnav-island-ios/releases/download/v1.0.0/ArnavIsland.ipa",
-          "size": 0,
+          "size": 3688404,
           "minOSVersion": "18.0"
         }
       ],
       "appPermissions": {
-        "entitlements": ["com.apple.security.application-groups"],
+        "entitlements": [
+          "com.apple.security.application-groups"
+        ],
         "privacy": {
           "NSLocalNetworkUsageDescription": "Arnav Island connects straight to your PC on this Wi-Fi, end-to-end encrypted, for fast files and a smooth screen.",
           "NSCameraUsageDescription": "To scan your PC's pairing code, take photos for its Shelf, and show this iPhone's camera on your PC.",
