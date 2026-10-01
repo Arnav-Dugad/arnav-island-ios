@@ -33,8 +33,13 @@ jobs:
         env:
           PAIR_LINK: ${{ github.event.inputs.pair_link }}
         run: bash scripts/live.sh
+      # Only the app's log goes up (outcomes and counts): the screenshots show that PC's real readings (its battery,
+      # its weather), and this repository is public.
       - uses: actions/upload-artifact@v4
         if: always()
         with:
-          name: live
-          path: live
+          name: live-log
+          path: |
+            live/app.log
+            live/errors.log
+          retention-days: 3

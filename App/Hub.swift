@@ -383,6 +383,7 @@ final class Hub {
         let previous = status.flatMap { $0.pcName.isEmpty ? nil : $0 }
         let s = await io { l.status(p.id, haveCover: previous?.coverHash, previous: previous) }
         guard let s else { statusError = l.lastRemoteError.isEmpty ? "\(p.name) didn't answer" : l.lastRemoteError; appLog.notice("no status: \(self.statusError ?? "", privacy: .public)"); return nil }
+        if statusError != nil || status == nil { appLog.notice("status: playing \(s.playing), cover \(s.cover?.count ?? 0) bytes, battery known \(s.batteryPresent)") }
         statusError = nil
         let coverChanged = s.coverHash != status?.coverHash || (cover == nil && s.cover != nil)
         status = s
@@ -625,10 +626,11 @@ final class Hub {
     func sendBattery(force: Bool = false) {
         let (percent, charging) = DeviceInfo.battery()
         BatteryForecast.record(percent, charging)
-        guard prefs.battery, let l = link else { return }
+        // Unknown (iOS gives -1 until it has a reading): nothing is said, rather than "0%".
+        guard prefs.battery, percent >= 0, let l = link else { return }
         if !force && percent == sentBattery && charging == sentCharging { return }
         sentBattery = percent; sentCharging = charging
-        let frame = Frames.status(battery: max(0, percent), charging: charging)
+        let frame = Frames.status(battery: percent, charging: charging)
         let targets = peers.filter { $0.paired && $0.online && $0.remote }.map(\.id)
         DispatchQueue.global().async { for t in targets { _ = l.notice(t, frame) } }
         sendDetails()

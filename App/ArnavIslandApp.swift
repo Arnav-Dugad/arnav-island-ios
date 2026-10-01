@@ -58,8 +58,11 @@ struct AppRoot: View {
         case .active:
             hub.visible = true; Tilt.shared.start()
             if hub.prefs.faceID, let at = backgroundAt, Date().timeIntervalSince(at) > 30 { locked = true }
+            // Back after a while in the background (iOS may have let the connections go): every broker is dialled again
+            // at once. Not on the first launch, nor a glance away: that would drop connections just made (a pairing too).
+            let away = backgroundAt.map { Date().timeIntervalSince($0) } ?? 0
             backgroundAt = nil
-            Task { await hub.start(); hub.networkChanged(); hub.sendBattery(force: false); hub.sendDetails(); hub.clipboardOut() }
+            Task { await hub.start(); if away > 20 && !KeepAlive.shared.on { hub.networkChanged() }; hub.sendBattery(force: false); hub.sendDetails(); hub.clipboardOut() }
             if let place = AppGroup.defaults.string(forKey: "pendingOpen") { AppGroup.defaults.removeObject(forKey: "pendingOpen"); hub.request = place }
             // Files shared to your PC from other apps while the app was away.
             ShareInbox.collect()

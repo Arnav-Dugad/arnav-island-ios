@@ -1,6 +1,7 @@
 #!/bin/bash
-# The real app (no demo) in the simulator, pairing with an island over the internet from its pairing link, then a
-# screenshot of each tab with what that PC really reports. Needs sim-app.zip (from the screens job) and PAIR_LINK.
+# The real app (no demo) in the simulator, pairing with an island over the internet from its pairing link, then each tab
+# with what that PC really reports. The screenshots stay on the runner (they show that PC's readings); the app's log,
+# which says only what worked and how many, is what's kept. Needs sim-app.zip (from the screens job) and PAIR_LINK.
 set -u
 BUNDLE=io.github.arnavdugad.arnavisland
 OUT=live
