@@ -41,7 +41,7 @@ struct OfferSheet: View {
     @Environment(\.tokens) private var t
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        SheetBody(detents: [.medium]) {
+        SheetBody(detents: [.height(400)]) {
             if let o = hub.offers.first(where: { $0.transfer == transfer }) {
                 Image(systemName: o.folder ? "folder.fill" : symbolFor(o.title)).font(.system(size: 32, weight: .semibold)).foregroundStyle(t.good)
                     .frame(width: 74, height: 74).background(RoundedRectangle(cornerRadius: 22, style: .continuous).fill(t.good.opacity(0.18)))
@@ -110,7 +110,7 @@ struct LinkSheet: View {
     @State private var text = ""
     @FocusState private var focused: Bool
     var body: some View {
-        SheetBody(detents: [.medium]) {
+        SheetBody(detents: [.height(300)]) {
             Text("Open on \(hub.pc()?.name ?? "your PC")").font(TypeScale.title).foregroundStyle(t.text).frame(maxWidth: .infinity, alignment: .leading)
             HStack(spacing: 10) {
                 TextField("A web address", text: $text).keyboardType(.URL).textInputAutocapitalization(.never).autocorrectionDisabled().submitLabel(.go).focused($focused).onSubmit(go)
@@ -208,7 +208,7 @@ struct PhotoAskSheet: View {
     private var hub: Hub { Hub.shared }
     @Environment(\.tokens) private var t
     var body: some View {
-        SheetBody(detents: [.medium]) {
+        SheetBody(detents: [.height(350)]) {
             Image(systemName: "camera.fill").font(.system(size: 30)).foregroundStyle(t.accent).frame(width: 70, height: 70).background(Circle().fill(t.accent.opacity(0.18)))
             Text("Your PC asks for a photo").font(TypeScale.title).foregroundStyle(t.text).padding(.top, 14)
             Text("It lands on the island’s Shelf").font(TypeScale.caption).foregroundStyle(t.muted)
