@@ -42,7 +42,7 @@ struct AppRoot: View {
             NetWatch.shared.onChange = { Hub.shared.networkChanged() }
             await hub.start()
             // A test run (the simulator in CI): pairs with the island engine from its link.
-            if let link = Demo.argument("pairlink"), hub.pairedPCs.isEmpty { _ = hub.open(pairLink: link) }
+            if let link = Demo.argument("pairlink"), hub.pairedPCs.isEmpty { appLog.notice("test pairing link given"); if hub.open(pairLink: link) { hub.request = "pairing" } }
             KeepAlive.shared.sync(); RecentPhotos.shared.sync(); LiveActivities.shared.sync()
             NotificationCenter.default.addObserver(forName: UIDevice.batteryLevelDidChangeNotification, object: nil, queue: .main) { _ in MainActor.assumeIsolated { Hub.shared.sendBattery() } }
             NotificationCenter.default.addObserver(forName: UIDevice.batteryStateDidChangeNotification, object: nil, queue: .main) { _ in MainActor.assumeIsolated { Hub.shared.sendBattery() } }

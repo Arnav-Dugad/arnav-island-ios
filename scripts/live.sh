@@ -34,6 +34,7 @@ shot island 1
 shot shelf 3
 shot devices 4
 shot remote-again 0
-xcrun simctl spawn "$DEVICE" log show --last 5m --predicate 'process == "ArnavIsland"' --style compact > "$OUT/app.log" 2>/dev/null || true
+xcrun simctl spawn "$DEVICE" log show --last 10m --info --predicate 'subsystem == "io.github.arnavdugad.arnavisland"' --style compact > "$OUT/app.log" 2>/dev/null || true
+xcrun simctl spawn "$DEVICE" log show --last 10m --predicate 'process == "ArnavIsland" AND (messageType == error OR messageType == fault)' --style compact > "$OUT/errors.log" 2>/dev/null || true
 xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
 ls -la "$OUT"

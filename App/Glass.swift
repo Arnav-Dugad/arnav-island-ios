@@ -106,7 +106,7 @@ struct GlassButton<Label: View>: View {
             HStack(spacing: 8) { label() }
                 .lineLimit(1).minimumScaleFactor(0.85)
                 .frame(maxWidth: wide ? .infinity : nil)
-                .foregroundStyle(prominent ? t.accent : t.text)
+                .foregroundStyle(prominent ? t.onAccent : t.text)
                 .padding(.horizontal, 20).padding(.vertical, 13)
                 .frame(minHeight: 44)
                 .contentShape(Capsule())
@@ -126,7 +126,7 @@ struct GlassIconButton: View {
     var body: some View {
         Button(action: { Haptics.tap(); action() }) {
             Image(systemName: symbol).font(.system(size: iconSize, weight: .semibold))
-                .foregroundStyle(tint ?? (prominent ? t.accent : t.text))
+                .foregroundStyle(tint ?? (prominent ? t.onAccent : t.text))
                 .frame(width: size, height: size)
                 .contentShape(Circle())
                 .glass(Circle(), .control, tint: prominent ? t.accent : nil, interactive: true)

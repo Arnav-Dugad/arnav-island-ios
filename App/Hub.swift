@@ -1,6 +1,7 @@
 import SwiftUI
 import IslandKit
 import Observation
+import OSLog
 import UIKit
 import WidgetKit
 
@@ -59,6 +60,9 @@ struct Prefs: Codable, Equatable {
     static func load() -> Prefs { AppGroup.defaults.data(forKey: key).flatMap { try? JSONDecoder().decode(Prefs.self, from: $0) } ?? Prefs() }
     func save() { if let d = try? JSONEncoder().encode(self) { AppGroup.defaults.set(d, forKey: Prefs.key) } }
 }
+
+/// What the app does, for Console (names and contents stay private; outcomes are public).
+let appLog = Logger(subsystem: "io.github.arnavdugad.arnavisland", category: "app")
 
 /// Runs blocking work (the link's calls block) on a background queue, off Swift's cooperative threads.
 func io<T>(_ work: @escaping () -> T) async -> T {
@@ -154,7 +158,8 @@ final class Hub {
         l.onQuery = { peer, command, payload in Hub.answerQuery(peer, command, payload) }
         l.onClipboard = { text, sensitive in Hub.clipboardIn(text, sensitive) }
         let ok = await io { l.start() }
-        guard ok else { failure = l.failure ?? "The link couldn't start"; return nil }
+        guard ok else { failure = l.failure ?? "The link couldn't start"; appLog.error("link failed to start: \(self.failure ?? "", privacy: .public)"); return nil }
+        appLog.notice("link started, \(l.peerViews().count) known devices")
         link = l; running = true; failure = nil
         peers = l.peerViews(); pickDefault()
         return l
@@ -191,9 +196,11 @@ final class Hub {
             if !arrived.isEmpty { sendBattery(force: true); sendDetails(force: true) }
             Snapshotter.shared.peersChanged()
         case .pairCode(let peer, let name, let code, let confirmed):
+            appLog.notice("pairing code shown, confirmed \(confirmed)")
             codePairing = nil; pairCode = PairCodeShown(peer: peer, name: name, code: code, confirmed: confirmed)
             if !visible { Notify.pairing(name: name, code: code) }
         case .paired(let peer, let name, let ok, let detail):
+            appLog.notice("paired: \(ok), \(detail, privacy: .public)")
             codePairing = nil; pairCode = nil; pairResult = PairOutcome(peer: peer, name: name, ok: ok, detail: detail); Notify.cancel(Notify.pair)
             if ok {
                 if selected == nil || pc()?.id == nil { choose(peer) }
@@ -249,7 +256,7 @@ final class Hub {
             photoFor = peer
             if visible { request = "camera" } else { Notify.photo(name: name) }
         case .internet(let on):
-            internet = on
+            internet = on; appLog.notice("relay connected: \(on)")
         }
     }
 
@@ -302,14 +309,15 @@ final class Hub {
         codePairing = code
         Task {
             guard let l = await start() else { codePairing = nil; pairResult = PairOutcome(peer: "", name: "", ok: false, detail: "Starting… try again in a moment"); return }
-            _ = await io { l.waitConnected(8) }
+            let up = await io { l.waitConnected(8) }
             let ok = await io { l.pairWithCode(code, key: key) }
+            appLog.notice("pairing with a code: relay up \(up), started \(ok), key given \(key != nil)")
             if !ok { codePairing = nil; pairResult = PairOutcome(peer: "", name: "", ok: false, detail: busy) }
         }
     }
     /// A pairing link (the island's QR code, scanned by the Camera app or in the app).
     func open(pairLink text: String) -> Bool {
-        guard let p = Pairing.link(text) else { return false }
+        guard let p = Pairing.link(text) else { appLog.error("not a pairing link"); return false }
         pairWithCode(p.code, key: p.key); return true
     }
     func confirmPair(_ yes: Bool) { let l = link; DispatchQueue.global().async { l?.confirmPair(yes) }; if !yes { pairCode = nil } }
@@ -374,7 +382,7 @@ final class Hub {
         if !p.remote { statusError = "Update Arnav Island on \(p.name) for the remote"; return nil }
         let previous = status.flatMap { $0.pcName.isEmpty ? nil : $0 }
         let s = await io { l.status(p.id, haveCover: previous?.coverHash, previous: previous) }
-        guard let s else { statusError = l.lastRemoteError.isEmpty ? "\(p.name) didn't answer" : l.lastRemoteError; return nil }
+        guard let s else { statusError = l.lastRemoteError.isEmpty ? "\(p.name) didn't answer" : l.lastRemoteError; appLog.notice("no status: \(self.statusError ?? "", privacy: .public)"); return nil }
         statusError = nil
         let coverChanged = s.coverHash != status?.coverHash || (cover == nil && s.cover != nil)
         status = s

@@ -211,7 +211,7 @@ struct TabBar: View {
                                     .scaleEffect(1 + near * 0.08)
                                 Text(tab.title).font(.system(size: 10.5, weight: .semibold))
                             }
-                            .foregroundStyle(near > 0.5 ? t.accent : t.muted)
+                            .foregroundStyle(near > 0.5 ? t.onAccent : t.muted)
                             .frame(width: w, height: g.size.height)
                             .contentShape(Rectangle())
                         }

@@ -124,7 +124,7 @@ struct NowPlayingCard: View {
                     GlassIconButton(symbol: "backward.fill", label: "Previous", size: 60, iconSize: 26) { Task { await hub.media(2) } }.disabled(!s.canPrevious)
                     Spacer()
                     Button { Haptics.tap(); playingAsked = (!playing, Date()); Task { await hub.command(Proto.cmdMedia, [1]); try? await Task.sleep(for: .milliseconds(300)); await hub.refreshStatus() } } label: {
-                        PlayPause(playing: playing, size: 34, color: t.accent).frame(width: 84, height: 84).glass(Circle(), .control, tint: t.accent, interactive: true)
+                        PlayPause(playing: playing, size: 34, color: t.onAccent).frame(width: 84, height: 84).glass(Circle(), .control, tint: t.accent, interactive: true)
                     }
                     .buttonStyle(PressStyle()).disabled(!s.canToggle).accessibilityLabel(playing ? "Pause" : "Play")
                     Spacer()

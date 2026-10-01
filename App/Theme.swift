@@ -29,6 +29,9 @@ struct Tokens {
     let dark: Bool, palette: Palette
     var accent: Color { dark ? palette.accent : palette.accent.mixed(with: .black, by: 0.38) }
     var accent2: Color { dark ? palette.accent2 : palette.accent2.mixed(with: .black, by: 0.3) }
+    /// The accent for text and symbols on accent-tinted glass (a prominent button, the chosen tab): lifted in the dark so
+    /// a deep colour (a violet cover) still reads.
+    var onAccent: Color { dark ? palette.accent.mixed(with: .white, by: 0.45) : accent }
     var deep: Color { dark ? palette.deep : palette.deep.mixed(with: .white, by: 0.9) }
     var text: Color { dark ? Color(hex: 0xF5F7FA) : Color(hex: 0x10131A) }
     var muted: Color { dark ? Color(hex: 0xB3BAC6) : Color(hex: 0x545C6A) }

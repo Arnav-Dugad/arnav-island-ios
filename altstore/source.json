@@ -1,0 +1,45 @@
+{
+  "name": "Arnav Island",
+  "identifier": "io.github.arnavdugad.arnavisland.source",
+  "subtitle": "The companion for Arnav Island, the Dynamic Island for Windows.",
+  "description": "Your PC in your hand: what plays, the whole island, files both ways, its screen, the trackpad, music and pages handed over. End-to-end encrypted, only between your own devices.",
+  "iconURL": "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/App/Assets.xcassets/AppIcon.appiconset/icon.png",
+  "website": "https://github.com/Arnav-Dugad/arnav-island-ios",
+  "tintColor": "#A5D8C5",
+  "apps": [
+    {
+      "name": "Arnav Island",
+      "bundleIdentifier": "io.github.arnavdugad.arnavisland",
+      "developerName": "Arnav Dugad",
+      "subtitle": "Your PC, in your hand.",
+      "localizedDescription": "The companion for Arnav Island on Windows. Control what plays on your PC (cover, lyrics, a volume dial), everything on its island (live numbers, controls, the focus clock, power, every setting), send photos and files both ways, take from its Shelf, see and touch its screen (with Picture in Picture), use the iPhone as its trackpad and keyboard, hand music and Safari pages over, and find this iPhone from your PC. The app's island grows out of your Dynamic Island; Live Activities, widgets, Control Center, Siri and Shortcuts too. End-to-end encrypted (ECDH P-256, AES-256-GCM), only with your own paired PCs.",
+      "iconURL": "https://raw.githubusercontent.com/Arnav-Dugad/arnav-island-ios/main/App/Assets.xcassets/AppIcon.appiconset/icon.png",
+      "tintColor": "#A5D8C5",
+      "category": "utilities",
+      "screenshots": [],
+      "versions": [
+        {
+          "version": "1.0.0",
+          "buildVersion": "1",
+          "date": "2026-10-01",
+          "localizedDescription": "The first version.",
+          "downloadURL": "https://github.com/Arnav-Dugad/arnav-island-ios/releases/download/v1.0.0/ArnavIsland.ipa",
+          "size": 0,
+          "minOSVersion": "18.0"
+        }
+      ],
+      "appPermissions": {
+        "entitlements": ["com.apple.security.application-groups"],
+        "privacy": {
+          "NSLocalNetworkUsageDescription": "Arnav Island connects straight to your PC on this Wi-Fi, end-to-end encrypted, for fast files and a smooth screen.",
+          "NSCameraUsageDescription": "To scan your PC's pairing code, take photos for its Shelf, and show this iPhone's camera on your PC.",
+          "NSPhotoLibraryUsageDescription": "To send photos and videos to your PC, and to show a photo you just took on your PC's island.",
+          "NSPhotoLibraryAddUsageDescription": "To save photos and videos your PC sends you.",
+          "NSFaceIDUsageDescription": "To lock Arnav Island with Face ID.",
+          "NSMotionUsageDescription": "The light on the glass follows how you tilt your iPhone."
+        }
+      }
+    }
+  ],
+  "news": []
+}
