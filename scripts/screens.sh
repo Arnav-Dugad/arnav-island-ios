@@ -14,11 +14,14 @@ liked = [x for x in phones if x["name"] in ("iPhone 16", "iPhone 17", "iPhone 15
 print((liked or phones)[0]["udid"])')
 echo "Simulator: $(xcrun simctl list devices available | grep "$DEVICE")"
 set -o pipefail
+# Signed "to run locally" (ad hoc): the simulator's keychain wants a signed app, which the live test needs.
 xcodebuild -project ArnavIsland.xcodeproj -scheme ArnavIsland -configuration Debug -sdk iphonesimulator -destination "id=$DEVICE" -derivedDataPath build \
-  CODE_SIGNING_ALLOWED=NO build 2>&1 | tee sim-build.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
+  CODE_SIGNING_ALLOWED=YES CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY=- build 2>&1 | tee sim-build.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)"
 APP=build/Build/Products/Debug-iphonesimulator/ArnavIsland.app
 test -d "$APP" || exit 1
 set +o pipefail
+# Kept for the live test (scripts/live.sh), which installs it in a fresh simulator.
+ditto -c -k --keepParent "$APP" sim-app.zip
 xcrun simctl boot "$DEVICE" 2>/dev/null || true
 xcrun simctl bootstatus "$DEVICE" -b
 xcrun simctl status_bar "$DEVICE" override --time 9:41 --batteryState charged --batteryLevel 100 --wifiBars 3 --cellularBars 4 || true
@@ -30,9 +33,11 @@ shot() { # name, appearance, then launch arguments
   xcrun simctl ui "$DEVICE" appearance "$look" || true
   xcrun simctl terminate "$DEVICE" "$BUNDLE" 2>/dev/null || true
   xcrun simctl launch "$DEVICE" "$BUNDLE" -demo "$@" >/dev/null
-  sleep 6
+  sleep 7
   xcrun simctl io "$DEVICE" screenshot "$OUT/$name.png" >/dev/null 2>&1 && echo "shot $name"
 }
+# A first launch to warm up (the very first one is slow: its frames would show the launch screen).
+xcrun simctl launch "$DEVICE" "$BUNDLE" -demo >/dev/null; sleep 12
 shot remote-dark dark -tab 0
 shot island-dark dark -tab 1
 shot send-dark dark -tab 2 -transfer 1

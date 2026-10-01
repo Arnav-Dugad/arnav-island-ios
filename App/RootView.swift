@@ -59,6 +59,9 @@ struct RootView: View {
             }
             .onAppear { safeTop = g.safeAreaInsets.top }
         }
+        // The island opened (the song's card, or a banner) covers the status bar, as the system's own does.
+        .statusBarHidden(islandOpen || hub.banner != nil)
+        .animation(.easeInOut(duration: 0.25), value: islandOpen || hub.banner != nil)
         .background { KeyShortcuts(page: $page, onTrackpad: { handle("trackpad") }, onScreen: { openScreen() }) }
         .sheet(item: $sheet, onDismiss: nextIncoming) { s in sheetView(s).environment(hub).environment(\.tokens, t) }
         .fullScreenCover(isPresented: $screenOpen) { PcScreenView().environment(hub).environment(\.tokens, t) }
@@ -255,7 +258,8 @@ struct RingOverlay: View {
     @State private var pulse = false
     var body: some View {
         ZStack {
-            Color.black.opacity(0.55).ignoresSafeArea()
+            Rectangle().fill(.ultraThinMaterial).ignoresSafeArea()
+            Color.black.opacity(0.5).ignoresSafeArea()
             RadialGradient(colors: [t.warn.opacity(pulse ? 0.55 : 0.2), .clear], center: .center, startRadius: 10, endRadius: pulse ? 420 : 260).ignoresSafeArea()
             VStack(spacing: 22) {
                 ZStack {

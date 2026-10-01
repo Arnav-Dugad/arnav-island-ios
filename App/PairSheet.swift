@@ -35,6 +35,7 @@ struct PairSheet: View {
         .padding(.horizontal, 24).padding(.top, 28).padding(.bottom, 16)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
         .presentationDetents([.large]).presentationDragIndicator(.visible)
+        .presentationBackground { SheetBackdrop() }
         .onAppear { mode = start; if start != .finding { hub.pairResult = nil } }
         .onChange(of: hub.codePairing) { _, c in if c != nil && mode != .type { mode = .finding } }
         .onChange(of: hub.pairResult?.ok) { _, ok in if ok == true { Task { try? await Task.sleep(for: .seconds(1.6)); dismiss() } } }
@@ -84,8 +85,8 @@ struct PairSheet: View {
                 HStack(spacing: 10) { ProgressView(); Text("Waiting for \(c.name)…").font(TypeScale.caption).foregroundStyle(t.muted) }
             } else {
                 HStack(spacing: 12) {
-                    GlassButton(action: { hub.confirmPair(false); dismiss() }) { Text("Not now").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
-                    GlassButton(prominent: true, action: { Haptics.success(); hub.confirmPair(true) }) { Text("Pair").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
+                    GlassButton(wide: true, action: { hub.confirmPair(false); dismiss() }) { Text("Not now").font(TypeScale.bodyStrong) }
+                    GlassButton(prominent: true, wide: true, action: { Haptics.success(); hub.confirmPair(true) }) { Text("Pair").font(TypeScale.bodyStrong) }
                 }
             }
         }

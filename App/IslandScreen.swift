@@ -478,9 +478,9 @@ struct FocusPanel: View {
                         }
                         HStack(spacing: 8) {
                             ForEach([15, 25, 45], id: \.self) { m in
-                                GlassButton(action: { hub.setControl(IslandWire.focus, m) { $0.focusMode = 0; $0.focusDuration = Double(m * 60); $0.focusShown = Double(m * 60); $0.focusRunning = true } }) { Text("\(m) min").font(TypeScale.caption) }.frame(maxWidth: .infinity)
+                                GlassButton(wide: true, action: { hub.setControl(IslandWire.focus, m) { $0.focusMode = 0; $0.focusDuration = Double(m * 60); $0.focusShown = Double(m * 60); $0.focusRunning = true } }) { Text("\(m) min").font(TypeScale.caption) }
                             }
-                            GlassButton(action: { hub.setControl(IslandWire.breakTime, 5) { $0.focusMode = 1; $0.focusDuration = 300; $0.focusShown = 300; $0.focusRunning = true } }) { Text("Break").font(TypeScale.caption) }.frame(maxWidth: .infinity)
+                            GlassButton(wide: true, action: { hub.setControl(IslandWire.breakTime, 5) { $0.focusMode = 1; $0.focusDuration = 300; $0.focusShown = 300; $0.focusRunning = true } }) { Text("Break").font(TypeScale.caption) }
                         }
                     }
                 }
@@ -640,7 +640,7 @@ struct PagesPanel: View {
             ForEach([[0, 1, 2, 3], [5, 6, 7, 4]], id: \.self) { row in
                 HStack(spacing: 10) { ForEach(row, id: \.self) { i in ActionTile(symbol: symbols[i], label: IslandWire.pages[i], height: 70) { hub.openIslandPage(i) } } }
             }
-            GlassButton(action: { hub.closeIsland() }) { Image(systemName: "arrow.down.right.and.arrow.up.left"); Text("Close the island").font(TypeScale.caption) }.frame(maxWidth: .infinity)
+            GlassButton(wide: true, action: { hub.closeIsland() }) { Image(systemName: "arrow.down.right.and.arrow.up.left"); Text("Close the island").font(TypeScale.caption) }
         }
     }
 }

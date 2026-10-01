@@ -1,0 +1,40 @@
+name: Live
+
+# The real app in the simulator against a PC running the island (a test one), paired from its QR link.
+on:
+  workflow_dispatch:
+    inputs:
+      pair_link:
+        description: The island's pairing link (arnavisland://pair/CODE?k=...)
+        required: true
+
+permissions:
+  contents: read
+  actions: read
+
+jobs:
+  live:
+    name: The app with a real island
+    runs-on: macos-26
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Xcode
+        run: sudo xcode-select -s /Applications/Xcode_26.6.app
+      - name: The simulator build from the last CI run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RUN=$(gh run list -R "$GITHUB_REPOSITORY" --workflow ci.yml --branch main --status success -L 1 --json databaseId -q '.[0].databaseId')
+          echo "From run $RUN"
+          gh run download "$RUN" -R "$GITHUB_REPOSITORY" -n sim-app
+          ls -la sim-app.zip
+      - name: Pair and look
+        env:
+          PAIR_LINK: ${{ github.event.inputs.pair_link }}
+        run: bash scripts/live.sh
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live
+          path: live

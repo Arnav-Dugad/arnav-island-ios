@@ -6,12 +6,31 @@ import WebKit
 /// A sheet's content, centred, with the app's glass behind (iOS 26 makes the sheet itself Liquid Glass).
 struct SheetBody<Content: View>: View {
     var detents: Set<PresentationDetent> = [.medium, .large]
+    /// A picture to glow behind a full-height sheet (a song's cover); else the app's own light.
+    var backdrop: UIImage? = nil
     @ViewBuilder var content: () -> Content
     var body: some View {
-        ScrollView { VStack(spacing: 0) { content() }.padding(.horizontal, 24).padding(.top, 30).padding(.bottom, 20).frame(maxWidth: 520).frame(maxWidth: .infinity) }
+        let sheet = ScrollView { VStack(spacing: 0) { content() }.padding(.horizontal, 24).padding(.top, 30).padding(.bottom, 20).frame(maxWidth: 520).frame(maxWidth: .infinity) }
             .scrollBounceBehavior(.basedOnSize)
             .presentationDetents(detents).presentationDragIndicator(.visible)
             .presentationCornerRadius(38)
+        // Half-height sheets are Liquid Glass by themselves; full-height ones get the app's light behind them.
+        if detents == [.large] { sheet.presentationBackground { SheetBackdrop(image: backdrop) } } else { sheet }
+    }
+}
+
+/// Behind a full-height sheet: the app's slow light, or a picture (a song's cover) blurred into a glow.
+struct SheetBackdrop: View {
+    var image: UIImage? = nil
+    @Environment(\.tokens) private var t
+    var body: some View {
+        ZStack {
+            Ambient(playing: false, still: true)
+            if let image {
+                Image(uiImage: image).resizable().scaledToFill().blur(radius: 70).opacity(0.75).ignoresSafeArea()
+                LinearGradient(colors: [.black.opacity(t.dark ? 0.25 : 0.05), .black.opacity(t.dark ? 0.6 : 0.2)], startPoint: .top, endPoint: .bottom).ignoresSafeArea()
+            }
+        }
     }
 }
 
@@ -31,8 +50,8 @@ struct OfferSheet: View {
                 Text(o.title).font(TypeScale.bodyStrong).foregroundStyle(t.text).lineLimit(2).multilineTextAlignment(.center).padding(.top, 4)
                 Text("\(o.count > 1 ? "\(o.count) files  ·  " : "")\(sizeText(o.size))  ·  into Files › Arnav Island").font(TypeScale.caption).foregroundStyle(t.muted).multilineTextAlignment(.center)
                 HStack(spacing: 12) {
-                    GlassButton(action: { hub.answer(o, accept: false); dismiss() }) { Text("Decline").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
-                    GlassButton(prominent: true, action: { Haptics.success(); hub.answer(o, accept: true); dismiss() }) { Text("Accept").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
+                    GlassButton(wide: true, action: { hub.answer(o, accept: false); dismiss() }) { Text("Decline").font(TypeScale.bodyStrong) }
+                    GlassButton(prominent: true, wide: true, action: { Haptics.success(); hub.answer(o, accept: true); dismiss() }) { Text("Accept").font(TypeScale.bodyStrong) }
                 }
                 .padding(.top, 24)
             }
@@ -49,7 +68,7 @@ struct MusicSheet: View {
     @Environment(\.tokens) private var t
     @Environment(\.dismiss) private var dismiss
     var body: some View {
-        SheetBody(detents: [.large]) {
+        SheetBody(detents: [.large], backdrop: hub.music?.music.cover.flatMap { UIImage(data: Data($0)) }) {
             if let m = hub.music, m.transfer == transfer {
                 let cover = m.music.cover.flatMap { UIImage(data: Data($0)) }
                 let palette = cover.flatMap(Art.palette)
@@ -68,8 +87,8 @@ struct MusicSheet: View {
                         .padding(.top, 24)
                 } else {
                     HStack(spacing: 12) {
-                        GlassButton(action: { hub.answerMusic(m, play: false); dismiss() }) { Text("Not now").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
-                        GlassButton(prominent: true, action: { Haptics.success(); hub.answerMusic(m, play: true); if m.music.fileSize <= 0 { dismiss() } }) { Image(systemName: "play.fill"); Text("Play here").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity)
+                        GlassButton(wide: true, action: { hub.answerMusic(m, play: false); dismiss() }) { Text("Not now").font(TypeScale.bodyStrong) }
+                        GlassButton(prominent: true, wide: true, action: { Haptics.success(); hub.answerMusic(m, play: true); if m.music.fileSize <= 0 { dismiss() } }) { Image(systemName: "play.fill"); Text("Play here").font(TypeScale.bodyStrong) }
                     }
                     .padding(.top, 24)
                     if m.music.fileSize <= 0 { Text("Your PC plays it from an app, so it continues in \(m.music.app.localizedCaseInsensitiveContains("spotify") ? "Spotify" : m.music.app.localizedCaseInsensitiveContains("youtube") ? "YouTube Music" : "Apple Music") here").font(TypeScale.caption).foregroundStyle(t.faint).multilineTextAlignment(.center).padding(.top, 12) }
@@ -101,7 +120,7 @@ struct LinkSheet: View {
             .padding(.horizontal, 18).padding(.vertical, 12)
             .glassCapsule(.control, interactive: false)
             .padding(.top, 16)
-            GlassButton(prominent: true, action: go) { Image(systemName: "globe"); Text("Open").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity).padding(.top, 16).disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
+            GlassButton(prominent: true, wide: true, action: go) { Image(systemName: "globe"); Text("Open").font(TypeScale.bodyStrong) }.padding(.top, 16).disabled(text.trimmingCharacters(in: .whitespaces).isEmpty)
         }
         .onAppear { DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) { focused = true } }
     }
@@ -193,7 +212,7 @@ struct PhotoAskSheet: View {
             Image(systemName: "camera.fill").font(.system(size: 30)).foregroundStyle(t.accent).frame(width: 70, height: 70).background(Circle().fill(t.accent.opacity(0.18)))
             Text("Your PC asks for a photo").font(TypeScale.title).foregroundStyle(t.text).padding(.top, 14)
             Text("It lands on the island’s Shelf").font(TypeScale.caption).foregroundStyle(t.muted)
-            GlassButton(prominent: true, action: onCamera) { Image(systemName: "camera"); Text("Take a photo").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity).padding(.top, 22)
+            GlassButton(prominent: true, wide: true, action: onCamera) { Image(systemName: "camera"); Text("Take a photo").font(TypeScale.bodyStrong) }.padding(.top, 22)
         }
     }
 }
@@ -233,7 +252,7 @@ struct ClipSheet: View {
             Image(systemName: "doc.on.clipboard").font(.system(size: 26)).foregroundStyle(t.accent).frame(width: 60, height: 60).background(Circle().fill(t.accent.opacity(0.18)))
             Text("From your PC’s clipboard").font(TypeScale.title).foregroundStyle(t.text).padding(.top, 12)
             Text(String(text.prefix(600))).font(TypeScale.body).foregroundStyle(t.text).padding(16).frame(maxWidth: .infinity, alignment: .leading).glass(RoundedRectangle(cornerRadius: 20, style: .continuous), .control).padding(.top, 14)
-            GlassButton(prominent: true, action: { UIPasteboard.general.string = text; Haptics.success(); hub.show(Banner(kind: .clipboard, title: "Copied")); dismiss() }) { Image(systemName: "doc.on.doc"); Text("Copy").font(TypeScale.bodyStrong) }.frame(maxWidth: .infinity).padding(.top, 18)
+            GlassButton(prominent: true, wide: true, action: { UIPasteboard.general.string = text; Haptics.success(); hub.show(Banner(kind: .clipboard, title: "Copied")); dismiss() }) { Image(systemName: "doc.on.doc"); Text("Copy").font(TypeScale.bodyStrong) }.padding(.top, 18)
         }
     }
 }

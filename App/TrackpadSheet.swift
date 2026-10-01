@@ -82,6 +82,7 @@ struct TrackpadSheet: View {
         }
         .padding(20)
         .presentationDetents([.large]).presentationDragIndicator(.visible)
+        .presentationBackground { SheetBackdrop() }
         .interactiveDismissDisabled(false)
         .onAppear { input.start() }
         .onDisappear { input.close() }

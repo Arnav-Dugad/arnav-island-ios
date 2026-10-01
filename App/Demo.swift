@@ -6,6 +6,8 @@ import UIKit
 @MainActor
 enum Demo {
     static let on = ProcessInfo.processInfo.arguments.contains("-demo")
+    /// A test run: no permission prompts over what it shows.
+    static let quiet = ProcessInfo.processInfo.arguments.contains("-quiet")
     static func argument(_ name: String) -> String? {
         let a = ProcessInfo.processInfo.arguments; guard let i = a.firstIndex(of: "-" + name), i + 1 < a.count else { return nil }; return a[i + 1]
     }

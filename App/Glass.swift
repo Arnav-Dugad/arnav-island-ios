@@ -95,6 +95,8 @@ struct PressStyle: ButtonStyle {
 /// A pressable glass capsule that glows in the accent when prominent.
 struct GlassButton<Label: View>: View {
     var prominent = false
+    /// Filling the width it's given (the halves of a row of two).
+    var wide = false
     var action: () -> Void
     @ViewBuilder var label: () -> Label
     @Environment(\.tokens) private var t
@@ -102,6 +104,8 @@ struct GlassButton<Label: View>: View {
     var body: some View {
         Button(action: { Haptics.tap(); action() }) {
             HStack(spacing: 8) { label() }
+                .lineLimit(1).minimumScaleFactor(0.85)
+                .frame(maxWidth: wide ? .infinity : nil)
                 .foregroundStyle(prominent ? t.accent : t.text)
                 .padding(.horizontal, 20).padding(.vertical, 13)
                 .frame(minHeight: 44)

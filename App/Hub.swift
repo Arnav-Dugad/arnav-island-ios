@@ -197,7 +197,7 @@ final class Hub {
             codePairing = nil; pairCode = nil; pairResult = PairOutcome(peer: peer, name: name, ok: ok, detail: detail); Notify.cancel(Notify.pair)
             if ok {
                 if selected == nil || pc()?.id == nil { choose(peer) }
-                Haptics.success(); Notify.ask()
+                Haptics.success(); if !Demo.quiet { Notify.ask() }
                 show(Banner(kind: .paired, title: "Paired with \(name)", detail: "Files, music and the remote are ready, on any network"))
                 sendBattery(force: true); sendDetails(force: true)
             } else { Haptics.error(); show(Banner(kind: .failed, title: name.isEmpty ? "Not paired" : "Not paired with \(name)", detail: detail)) }
